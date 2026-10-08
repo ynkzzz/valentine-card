@@ -15,7 +15,7 @@
             min-height: 100vh;
         }
 
-        /* CSS animácia padajúcich srdiečok */
+        
         .heart-bg {
             position: fixed;
             top: -10vh;
@@ -38,7 +38,7 @@
             }
         }
 
-        /* Rozmiestnenie a časovanie srdiečok */
+        
         .h1 { left: 10%; animation-duration: 5s; animation-delay: 0s; }
         .h2 { left: 25%; animation-duration: 7s; animation-delay: 2s; font-size: 32px; }
         .h3 { left: 40%; animation-duration: 6s; animation-delay: 1s; }
@@ -111,7 +111,7 @@
         }
     </style>
 
-    <!-- EmailJS SDK -->
+    
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">
         (function() {
@@ -146,7 +146,7 @@
         <button onclick="vygenerujLink()">Generate Link</button>
     </div>
 
-    <!-- 2. KROK: Vygenerovaný odkaz -->
+    
     <div class="card" id="link-card" style="display: none;">
         <h1>Your Link is Ready! 🎉</h1>
         <p>Copy this link and send it to your beloved:</p>
@@ -156,7 +156,7 @@
         <button onclick="skopirujLink()">Copy Link 📋</button>
     </div>
 
-    <!-- 3. KROK: Zobrazenie pre adresáta -->
+    
     <div class="card" id="letter-card" style="display: none;">
         <h1 id="letter-title"></h1>
         <p id="letter-body" style="font-size: 18px; line-height: 1.6; white-space: pre-wrap;"></p>
