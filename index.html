@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valentine's Card</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            font-family: sans-serif;
+            text-align: center;
+            padding-top: 50px;
+            margin: 0;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* CSS animácia padajúcich srdiečok */
+        .heart-bg {
+            position: fixed;
+            top: -10vh;
+            font-size: 24px;
+            color: rgba(255, 51, 102, 0.6);
+            animation: fall 6s linear infinite;
+            z-index: 0;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(0vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(105vh) rotate(360deg);
+                opacity: 0.2;
+            }
+        }
+
+        /* Rozmiestnenie a časovanie srdiečok */
+        .h1 { left: 10%; animation-duration: 5s; animation-delay: 0s; }
+        .h2 { left: 25%; animation-duration: 7s; animation-delay: 2s; font-size: 32px; }
+        .h3 { left: 40%; animation-duration: 6s; animation-delay: 1s; }
+        .h4 { left: 55%; animation-duration: 8s; animation-delay: 3s; font-size: 36px; }
+        .h5 { left: 70%; animation-duration: 5.5s; animation-delay: 0.5s; }
+        .h6 { left: 85%; animation-duration: 7.5s; animation-delay: 1.5s; font-size: 28px; }
+
+        h1 {
+            color: #ff3366;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background-color: #ff3366;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+            transition: transform 0.1s ease;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        #btn-no {
+            position: absolute;
+            background-color: #777;
+            transition: all 0.2s ease;
+        }
+
+        input, textarea {
+            padding: 10px;
+            border: 2px solid #ff3366;
+            border-radius: 10px;
+            width: 260px;
+            font-family: sans-serif;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.92);
+            display: inline-block;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            max-width: 380px;
+            width: 90%;
+            position: relative;
+            backdrop-filter: blur(5px);
+            z-index: 10;
+        }
+
+        .buttons-container {
+            height: 60px;
+            position: relative;
+            margin-top: 20px;
+        }
+
+        #generated-link-input {
+            width: 100%;
+            font-size: 13px;
+            padding: 8px;
+            margin-top: 10px;
+            background: #fff;
+        }
+    </style>
+
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            emailjs.init("mwQENLoQtQ9UgnI4n");
+        })();
+    </script>
+</head>
+<body>
+
+    <!-- Srdiečka na pozadí -->
+    <div class="heart-bg h1">❤️</div>
+    <div class="heart-bg h2">💖</div>
+    <div class="heart-bg h3">❤️</div>
+    <div class="heart-bg h4">💕</div>
+    <div class="heart-bg h5">❤️</div>
+    <div class="heart-bg h6">💗</div>
+
+    <!-- 1. KROK: Formulár -->
+    <div class="card" id="form-card">
+        <h1>Valentine!</h1>
+        <p>Create your custom Valentine link ❤️</p>
+
+        <input type="text" id="sender" placeholder="Your name">
+        <br><br>
+        <input type="text" id="receiver" placeholder="The name of your beloved">
+        <br><br>
+        <input type="email" id="sender-email" placeholder="Your email (to get their answer)">
+        <br><br>
+        <textarea id="message" placeholder="Write a short letter to her/him here..."></textarea>
+        <br><br>
+
+        <button onclick="vygenerujLink()">Generate Link</button>
+    </div>
+
+    <!-- 2. KROK: Vygenerovaný odkaz -->
+    <div class="card" id="link-card" style="display: none;">
+        <h1>Your Link is Ready! 🎉</h1>
+        <p>Copy this link and send it to your beloved:</p>
+        
+        <input type="text" id="generated-link-input" readonly>
+        <br><br>
+        <button onclick="skopirujLink()">Copy Link 📋</button>
+    </div>
+
+    <!-- 3. KROK: Zobrazenie pre adresáta -->
+    <div class="card" id="letter-card" style="display: none;">
+        <h1 id="letter-title"></h1>
+        <p id="letter-body" style="font-size: 18px; line-height: 1.6; white-space: pre-wrap;"></p>
+        <p style="font-weight: bold; color: #ff3366;" id="letter-footer"></p>
+        
+        <hr style="border: 0; height: 1px; background: #ff3366; margin: 20px 0;">
+        <h3>Will you be my Valentine? ❤️</h3>
+        
+        <div class="buttons-container">
+            <button onclick="stlaceneAno()">YES!</button>
+            <button id="btn-no" onmouseover="utecTlacitko()" onclick="utecTlacitko()">NO</button>
+        </div>
+    </div>
+
+    <script>
+        var paramSender = "";
+        var paramReceiver = "";
+        var paramEmail = "";
+        var paramMessage = "";
+
+        window.onload = function() {
+            var urlParams = new URLSearchParams(window.location.search);
+            
+            if (urlParams.has('s') && urlParams.has('r') && urlParams.has('e')) {
+                paramSender = decodeURIComponent(urlParams.get('s'));
+                paramReceiver = decodeURIComponent(urlParams.get('r'));
+                paramEmail = decodeURIComponent(urlParams.get('e'));
+                paramMessage = decodeURIComponent(urlParams.get('m') || '');
+
+                document.getElementById("form-card").style.display = "none";
+                document.getElementById("letter-title").innerText = "Dear " + paramReceiver + " ❤️";
+                document.getElementById("letter-body").innerText = paramMessage;
+                document.getElementById("letter-footer").innerText = "With love, " + paramSender;
+                document.getElementById("letter-card").style.display = "inline-block";
+            }
+        };
+
+        function vygenerujLink() {
+            var senderName = document.getElementById("sender").value.trim();
+            var receiverName = document.getElementById("receiver").value.trim();
+            var senderEmail = document.getElementById("sender-email").value.trim();
+            var messageText = document.getElementById("message").value.trim();
+
+            if (senderName === "" || receiverName === "" || senderEmail === "" || messageText === "") {
+                alert("Please fill in all the fields including your email!");
+                return;
+            }
+
+            var baseUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            var fullUrl = baseUrl + "?s=" + encodeURIComponent(senderName) + 
+                          "&r=" + encodeURIComponent(receiverName) + 
+                          "&e=" + encodeURIComponent(senderEmail) + 
+                          "&m=" + encodeURIComponent(messageText);
+
+            document.getElementById("form-card").style.display = "none";
+            document.getElementById("generated-link-input").value = fullUrl;
+            document.getElementById("link-card").style.display = "inline-block";
+        }
+
+        function skopirujLink() {
+            var copyText = document.getElementById("generated-link-input");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(copyText.value);
+            alert("Link copied to clipboard! Now send it to your Valentine! ❤️");
+        }
+
+        function utecTlacitko() {
+            var btn = document.getElementById("btn-no");
+            var x = Math.random() * (window.innerWidth - 120);
+            var y = Math.random() * (window.innerHeight - 60);
+            btn.style.position = "fixed";
+            btn.style.left = x + "px";
+            btn.style.top = y + "px";
+        }
+
+        function stlaceneAno() {
+            var templateParams = {
+                to_email: paramEmail,
+                sender_name: paramSender,
+                receiver_name: paramReceiver,
+                message_text: "SAID YES! ❤️ " + paramReceiver + " accepted your Valentine request!"
+            };
+
+            emailjs.send("service_ca2oj77", "template_rcb75ed", templateParams)
+                .then(function(response) {
+                    console.log('E-mail uspesne odoslany!', response.status, response.text);
+                }, function(error) {
+                    console.log('Chyba pri posielani e-mailu:', error);
+                });
+
+            alert("YAY! ❤️ Best Valentine Ever! Answer sent to " + paramSender + "!");
+        }
+    </script>
+
+</body>
+</html>
